@@ -131,7 +131,7 @@ void AbstractNotationPaintView::initBackground()
 void AbstractNotationPaintView::initNavigatorOrientation()
 {
     configuration()->canvasOrientation().ch.onReceive(this, [this](muse::Orientation) {
-        moveCanvas(0, 0, CoordinateSystem::ABSOLUTE_COORDS, false);
+        moveCanvasToPosition(0, 0, false);
     });
 }
 
@@ -144,7 +144,7 @@ void AbstractNotationPaintView::moveCanvasToCenter()
     }
 
     PointF canvasCenter = this->canvasCenter();
-    moveCanvas(canvasCenter.x(), canvasCenter.y(), CoordinateSystem::RELATIVE_COORDS, false, false);
+    moveCanvas(canvasCenter.x(), canvasCenter.y(), false, false);
 }
 
 void AbstractNotationPaintView::scrollHorizontal(qreal position)
@@ -713,19 +713,12 @@ PointF AbstractNotationPaintView::canvasCenter() const
     return toLogical(PointF(x, y));
 }
 
-std::pair<qreal, qreal> AbstractNotationPaintView::constrainedCanvasMoveDelta(qreal x, qreal y,
-                                                                              CoordinateSystem inputCoordinateSystem) const
+std::pair<qreal, qreal> AbstractNotationPaintView::constrainedCanvasMoveDelta(qreal x, qreal y) const
 {
     TRACEFUNC;
     double margin = MScore::horizontalPageGapOdd;
     RectF scrollableArea = notationContentRect().adjusted(-margin, -margin, margin, margin);
     RectF viewport = this->viewport();
-
-    // convert from relative coordinates to absolute coordinates
-    if (inputCoordinateSystem == CoordinateSystem::RELATIVE_COORDS) {
-        x = viewport.left() - x;
-        y = viewport.top() - y;
-    }
 
     // horizontal
     if (viewport.width() > scrollableArea.width()) {
@@ -935,7 +928,7 @@ bool AbstractNotationPaintView::adjustCanvasPosition(const RectF& logicRect, boo
         return false;
     }
 
-    return moveCanvas(pos.x(), pos.y(), CoordinateSystem::ABSOLUTE_COORDS);
+    return moveCanvasToPosition(pos.x(), pos.y());
 }
 
 bool AbstractNotationPaintView::adjustCanvasPositionSmoothPan(const RectF& cursorRect)
@@ -945,19 +938,18 @@ bool AbstractNotationPaintView::adjustCanvasPositionSmoothPan(const RectF& curso
     qreal newY = viewport().intersects(cursorRect)
                  ? cursorRect.y() - (viewRect.height() / 2)
                  : viewRect.y();
-    return moveCanvas(newX, newY, CoordinateSystem::ABSOLUTE_COORDS);
+    return moveCanvasToPosition(newX, newY);
 }
 
 bool AbstractNotationPaintView::ensureViewportInsideScrollableArea()
 {
     TRACEFUNC;
-    return moveCanvas(0, 0, CoordinateSystem::RELATIVE_COORDS, false);
+    return moveCanvas(0, 0, false);
 }
 
-bool AbstractNotationPaintView::moveCanvas(
+bool AbstractNotationPaintView::moveCanvasToPosition(
     qreal x,
     qreal y,
-    CoordinateSystem coordSystem,
     bool userTriggeredMove,
     bool overrideZoomType)
 {
@@ -967,7 +959,7 @@ bool AbstractNotationPaintView::moveCanvas(
         return false;
     }
 
-    auto [dx, dy] = constrainedCanvasMoveDelta(x, y, coordSystem);
+    auto [dx, dy] = constrainedCanvasMoveDelta(x, y);
     if (qFuzzyIsNull(dx) && qFuzzyIsNull(dy)) {
         return false;
     }
@@ -983,6 +975,15 @@ bool AbstractNotationPaintView::moveCanvas(
     }
 
     return true;
+}
+
+bool AbstractNotationPaintView::moveCanvas(qreal dx, qreal dy, bool userTriggeredMove, bool overrideZoomType) {
+    return moveCanvasToPosition(
+        this->viewport().left() - dx,
+        this->viewport().top() - dy,
+        userTriggeredMove,
+        overrideZoomType
+    );
 }
 
 void AbstractNotationPaintView::scheduleRedraw(const muse::RectF& rect)
@@ -1054,7 +1055,7 @@ void AbstractNotationPaintView::scale(qreal factor, const PointF& pos, bool over
     qreal dx = pointAfterScaling.x() - pointBeforeScaling.x();
     qreal dy = pointAfterScaling.y() - pointBeforeScaling.y();
 
-    moveCanvas(dx, dy, CoordinateSystem::RELATIVE_COORDS, true, overrideZoomType);
+    moveCanvas(dx, dy, true, overrideZoomType);
 }
 
 void AbstractNotationPaintView::pinchToZoom(qreal scaleFactor, const QPointF& pos)

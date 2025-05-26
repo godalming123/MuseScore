@@ -183,7 +183,7 @@ void NotationViewInputController::initZoom()
 
 void NotationViewInputController::initCanvasPos()
 {
-    m_view->moveCanvas(-MScore::horizontalPageGapOdd, -MScore::horizontalPageGapOdd, CoordinateSystem::ABSOLUTE_COORDS, false);
+    m_view->moveCanvasToPosition(-MScore::horizontalPageGapOdd, -MScore::horizontalPageGapOdd, false);
 }
 
 void NotationViewInputController::updateZoomAfterSizeChange()
@@ -438,7 +438,7 @@ void NotationViewInputController::moveScreen(int direction)
     }
     auto scale = m_view->currentScaling();
     if (notation->viewMode() == ViewMode::LINE) {
-        m_view->moveCanvas(m_view->width() * direction * scrollStep / scale, 0, CoordinateSystem::RELATIVE_COORDS);
+        m_view->moveCanvas(m_view->width() * direction * scrollStep / scale, 0);
     } else {
         auto offset = m_view->toLogical(QPoint());
         auto rect = m_view->notationContentRect();
@@ -446,16 +446,15 @@ void NotationViewInputController::moveScreen(int direction)
             if (offset.x() >= -notationScreenPadding) {
                 m_view->moveCanvas(
                     m_view->width() * direction * scrollStep / scale,
-                    offset.y() - notationScreenPadding - (rect.height() - m_view->height() / scale),
-                    CoordinateSystem::RELATIVE_COORDS);
+                    offset.y() - notationScreenPadding - (rect.height() - m_view->height() / scale));
             }
         } else if (direction < 0 && offset.y() >= (rect.height() - m_view->height() / scale)) {
             auto dx = m_view->width() * direction * scrollStep / scale;
             if (offset.x() < rect.width() + notationScreenPadding + dx) {
-                m_view->moveCanvas(dx, offset.y() + notationScreenPadding, CoordinateSystem::RELATIVE_COORDS);
+                m_view->moveCanvas(dx, offset.y() + notationScreenPadding);
             }
         } else {
-            m_view->moveCanvas(0, m_view->height() * direction * scrollStep / scale, CoordinateSystem::RELATIVE_COORDS);
+            m_view->moveCanvas(0, m_view->height() * direction * scrollStep / scale);
         }
     }
 }
@@ -474,11 +473,11 @@ void NotationViewInputController::movePage(int direction)
     if (configuration()->canvasOrientation().val == muse::Orientation::Vertical) {
         qreal offset = std::min((page->height() + notationScreenPadding) * direction, m_view->toLogical(
                                     QPoint()).y() + notationScreenPadding);
-        m_view->moveCanvas(0, offset, CoordinateSystem::RELATIVE_COORDS);
+        m_view->moveCanvas(0, offset);
     } else {
         qreal offset
             = std::min((page->width() + notationScreenPadding) * direction, m_view->toLogical(QPoint()).x() + notationScreenPadding);
-        m_view->moveCanvas(0, offset, CoordinateSystem::RELATIVE_COORDS);
+        m_view->moveCanvas(0, offset);
     }
 }
 
@@ -521,7 +520,7 @@ void NotationViewInputController::endOfScore()
     qreal desiredY = std::max(-notationScreenPadding, lmRect.bottom()
                               + lastMeasure->score()->style().styleD(mu::engraving::Sid::spatium) * 5 - m_view->height() / scale);
     auto offset = m_view->toLogical(QPoint());
-    m_view->moveCanvas(offset.x() - desiredX, offset.y() - desiredY, CoordinateSystem::RELATIVE_COORDS);
+    m_view->moveCanvas(offset.x() - desiredX, offset.y() - desiredY);
 }
 
 void NotationViewInputController::pinchToZoom(qreal scaleFactor, const QPointF& pos)

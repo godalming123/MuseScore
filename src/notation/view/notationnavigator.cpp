@@ -191,7 +191,7 @@ bool NotationNavigator::moveCanvasToRect(const RectF& viewRect, bool userTrigger
         }
     }
 
-    return moveCanvas(-dx, -dy, CoordinateSystem::RELATIVE_COORDS, userTriggeredMove);
+    return moveCanvas(-dx, -dy, userTriggeredMove);
 }
 
 void NotationNavigator::setCursorRect(const QRectF& rect)
@@ -231,7 +231,7 @@ void NotationNavigator::initOrientation()
 {
     ValCh<muse::Orientation> orientation = configuration()->canvasOrientation();
     orientation.ch.onReceive(this, [this](muse::Orientation) {
-        moveCanvas(0, 0, CoordinateSystem::ABSOLUTE_COORDS, false);
+        moveCanvasToPosition(0, 0, false);
         emit orientationChanged();
     });
 

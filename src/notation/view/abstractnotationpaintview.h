@@ -107,7 +107,10 @@ public:
     muse::RectF fromLogical(const muse::RectF& rect) const override;
 
     Q_INVOKABLE bool moveCanvas(
-        qreal x, qreal y, CoordinateSystem coordSystem = CoordinateSystem::RELATIVE_COORDS, bool userTriggeredMove = true,
+        qreal dx, qreal dy, bool userTriggeredMove = true,
+        bool overrideZoomType = false);
+    Q_INVOKABLE bool moveCanvasToPosition(
+        qreal x, qreal y, bool userTriggeredMove = true,
         bool overrideZoomType = false);
 
     qreal currentScaling() const override;
@@ -256,7 +259,7 @@ private:
     void paintBackground(const muse::RectF& rect, muse::draw::Painter* painter);
 
     muse::PointF canvasCenter() const;
-    std::pair<qreal, qreal> constrainedCanvasMoveDelta(qreal x, qreal y, CoordinateSystem inputCoordinateSystem) const;
+    std::pair<qreal, qreal> constrainedCanvasMoveDelta(qreal x, qreal y) const;
 
     INotationPtr m_notation;
     muse::draw::Transform m_matrix;

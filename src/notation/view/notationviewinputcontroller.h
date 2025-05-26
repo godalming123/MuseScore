@@ -55,8 +55,9 @@ public:
 
     //! muse::Returns true if the canvas has been moved
     virtual bool moveCanvas(
-        qreal x, qreal y, CoordinateSystem coordSystem
-        = CoordinateSystem::RELATIVE_COORDS, bool userTriggeredMove = true, bool overrideZoomType = false) = 0;
+        qreal dx, qreal dy, bool userTriggeredMove = true, bool overrideZoomType = false) = 0;
+    virtual bool moveCanvasToPosition(
+        qreal x, qreal y, bool userTriggeredMove = true, bool overrideZoomType = false) = 0;
 
     virtual muse::RectF notationContentRect() const = 0;
     virtual qreal currentScaling() const = 0;
