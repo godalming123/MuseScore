@@ -977,13 +977,13 @@ bool AbstractNotationPaintView::moveCanvasToPosition(
     return true;
 }
 
-bool AbstractNotationPaintView::moveCanvas(qreal dx, qreal dy, bool userTriggeredMove, bool overrideZoomType) {
+bool AbstractNotationPaintView::moveCanvas(qreal dx, qreal dy, bool userTriggeredMove, bool overrideZoomType)
+{
     return moveCanvasToPosition(
         this->viewport().left() - dx,
         this->viewport().top() - dy,
         userTriggeredMove,
-        overrideZoomType
-    );
+        overrideZoomType);
 }
 
 void AbstractNotationPaintView::scheduleRedraw(const muse::RectF& rect)

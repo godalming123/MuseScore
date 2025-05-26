@@ -71,7 +71,7 @@ public:
     inline T x() const { return m_x; }
     inline T y() const { return m_y; }
 
-    //! NOTE I don't like this methods, but now it a lot of using
+    //! NOTE I don't like these methods, but now they are being used a lot
     inline number_t<T>& rx() { return m_x; }
     inline number_t<T>& ry() { return m_y; }
 

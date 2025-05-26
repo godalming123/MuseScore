@@ -107,11 +107,9 @@ public:
     muse::RectF fromLogical(const muse::RectF& rect) const override;
 
     Q_INVOKABLE bool moveCanvas(
-        qreal dx, qreal dy, bool userTriggeredMove = true,
-        bool overrideZoomType = false);
+        qreal dx, qreal dy, bool userTriggeredMove = true, bool overrideZoomType = false);
     Q_INVOKABLE bool moveCanvasToPosition(
-        qreal x, qreal y, bool userTriggeredMove = true,
-        bool overrideZoomType = false);
+        qreal x, qreal y, bool userTriggeredMove = true, bool overrideZoomType = false);
 
     qreal currentScaling() const override;
     void setScaling(qreal scaling, const muse::PointF& pos, bool overrideZoomType = true) override;
