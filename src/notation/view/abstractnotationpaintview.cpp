@@ -105,14 +105,6 @@ void AbstractNotationPaintView::load()
     initBackground();
     initNavigatorOrientation();
 
-    configuration()->isLimitCanvasScrollAreaChanged().onNotify(this, [this]() {
-        ensureViewportInsideScrollableArea();
-
-        emit horizontalScrollChanged();
-        emit verticalScrollChanged();
-        emit viewportChanged();
-    });
-
     scheduleRedraw();
 
     m_loaded = true;
@@ -716,8 +708,7 @@ PointF AbstractNotationPaintView::canvasCenter() const
 std::pair<qreal, qreal> AbstractNotationPaintView::constrainedCanvasMoveDelta(qreal x, qreal y) const
 {
     TRACEFUNC;
-    double margin = MScore::horizontalPageGapOdd;
-    RectF scrollableArea = notationContentRect().adjusted(-margin, -margin, margin, margin);
+    RectF scrollableArea = notationContentRect().padded(MScore::horizontalPageGapOdd);
     RectF viewport = this->viewport();
 
     // horizontal
