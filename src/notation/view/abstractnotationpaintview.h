@@ -108,7 +108,7 @@ public:
 
     Q_INVOKABLE bool moveCanvas(qreal dx, qreal dy, bool userTriggeredMove = true);
     Q_INVOKABLE bool moveCanvasToPosition(qreal x, qreal y, bool userTriggeredMove = true);
-    void doMoveCanvas(muse::PointF delta, bool userTriggeredMove = true, bool overrideZoomType = false);
+    void moveUnconstrainedCanvas(muse::PointF delta, bool userTriggeredMove = true, bool overrideZoomType = false);
 
     qreal currentScaling() const override;
     void setScaling(qreal scaling, const muse::PointF& pos, bool overrideZoomType = true) override;

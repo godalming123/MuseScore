@@ -186,10 +186,10 @@ void NotationViewInputController::initCanvasPos()
     RectF viewport = m_view->viewport();
     RectF scrollableArea = m_view->notationContentRect().padded(MScore::horizontalPageGapOdd);
     qreal x = viewport.width() > scrollableArea.width()
-        ? scrollableArea.center().x() - viewport.width() / 2 : scrollableArea.left();
+              ? scrollableArea.center().x() - viewport.width() / 2 : scrollableArea.left();
     qreal y = viewport.height() > scrollableArea.height()
-        ? scrollableArea.center().y() - viewport.height() / 2 : scrollableArea.top();
-    m_view->moveCanvasToPosition(x, y, false);
+              ? scrollableArea.center().y() - viewport.height() / 2 : scrollableArea.top();
+    m_view->moveUnconstrainedCanvas(viewport.topLeft()-PointF(x, y), false);
 }
 
 void NotationViewInputController::updateZoomAfterSizeChange()

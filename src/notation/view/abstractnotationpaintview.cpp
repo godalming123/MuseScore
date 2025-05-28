@@ -705,7 +705,7 @@ PointF AbstractNotationPaintView::canvasCenter() const
     return toLogical(PointF(x, y));
 }
 
-void AbstractNotationPaintView::doMoveCanvas(PointF delta, bool userTriggeredMove, bool overrideZoomType)
+void AbstractNotationPaintView::moveUnconstrainedCanvas(PointF delta, bool userTriggeredMove, bool overrideZoomType)
 {
     Transform oldMatrix = m_matrix;
     m_matrix.translate(delta.x(), delta.y());
@@ -961,7 +961,7 @@ bool AbstractNotationPaintView::moveCanvasToPosition(
         return false;
     }
 
-    doMoveCanvas(delta, userTriggeredMove, false);
+    moveUnconstrainedCanvas(delta, userTriggeredMove, false);
     return true;
 }
 
@@ -1055,7 +1055,7 @@ void AbstractNotationPaintView::scale(qreal factor, const PointF& pos, bool over
         newPos.setY(qBound(scrollableArea.top(), newPos.y(), scrollableArea.bottom() - viewport.height()));
     }
 
-    doMoveCanvas(viewport.topLeft() - newPos, true, overrideZoomType);
+    moveUnconstrainedCanvas(viewport.topLeft() - newPos, true, overrideZoomType);
 }
 
 void AbstractNotationPaintView::pinchToZoom(qreal scaleFactor, const QPointF& pos)

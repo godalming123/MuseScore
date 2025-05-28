@@ -39,6 +39,7 @@ public:
 
     MOCK_METHOD(bool, moveCanvas, (qreal, qreal, bool));
     MOCK_METHOD(bool, moveCanvasToPosition, (qreal, qreal, bool));
+    MOCK_METHOD(void, moveUnconstrainedCanvas, (muse::PointF, bool, bool));
 
     MOCK_METHOD(muse::RectF, notationContentRect, (), (const, override));
     MOCK_METHOD(qreal, currentScaling, (), (const, override));

@@ -58,6 +58,8 @@ public:
     virtual bool moveCanvas(qreal dx, qreal dy, bool userTriggeredMove = true) = 0;
     virtual bool moveCanvasToPosition(qreal x, qreal y, bool userTriggeredMove = true) = 0;
 
+    virtual void moveUnconstrainedCanvas(muse::PointF delta, bool userTriggeredMove = true, bool overrideZoomType = false) = 0;
+
     virtual muse::RectF notationContentRect() const = 0;
     virtual qreal currentScaling() const = 0;
     virtual void setScaling(qreal scaling, const muse::PointF& pos, bool overrideZoomType = true) = 0;
