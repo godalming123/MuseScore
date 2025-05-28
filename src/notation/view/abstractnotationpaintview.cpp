@@ -705,7 +705,8 @@ PointF AbstractNotationPaintView::canvasCenter() const
     return toLogical(PointF(x, y));
 }
 
-void AbstractNotationPaintView::doMoveCanvas(PointF delta, bool userTriggeredMove, bool overrideZoomType) {
+void AbstractNotationPaintView::doMoveCanvas(PointF delta, bool userTriggeredMove, bool overrideZoomType)
+{
     Transform oldMatrix = m_matrix;
     m_matrix.translate(delta.x(), delta.y());
     onMatrixChanged(oldMatrix, m_matrix, overrideZoomType);
