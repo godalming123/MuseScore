@@ -106,10 +106,9 @@ public:
     muse::PointF fromLogical(const muse::PointF& point) const override;
     muse::RectF fromLogical(const muse::RectF& rect) const override;
 
-    Q_INVOKABLE bool moveCanvas(
-        qreal dx, qreal dy, bool userTriggeredMove = true, bool overrideZoomType = false);
-    Q_INVOKABLE bool moveCanvasToPosition(
-        qreal x, qreal y, bool userTriggeredMove = true, bool overrideZoomType = false);
+    Q_INVOKABLE bool moveCanvas(qreal dx, qreal dy, bool userTriggeredMove = true);
+    Q_INVOKABLE bool moveCanvasToPosition(qreal x, qreal y, bool userTriggeredMove = true);
+    void doMoveCanvas(muse::PointF delta, bool userTriggeredMove = true, bool overrideZoomType = false);
 
     qreal currentScaling() const override;
     void setScaling(qreal scaling, const muse::PointF& pos, bool overrideZoomType = true) override;
@@ -140,7 +139,7 @@ public:
     qreal verticalScrollbarSize() const;
 
     muse::PointF viewportTopLeft() const override;
-    muse::RectF viewport() const;
+    muse::RectF viewport() const override;
     QRectF viewport_property() const;
 
     bool publishMode() const;
@@ -257,7 +256,7 @@ private:
     void paintBackground(const muse::RectF& rect, muse::draw::Painter* painter);
 
     muse::PointF canvasCenter() const;
-    std::pair<qreal, qreal> constrainedCanvasMoveDelta(qreal x, qreal y) const;
+    muse::PointF constrainCanvasPosition(qreal x, qreal y) const;
 
     INotationPtr m_notation;
     muse::draw::Transform m_matrix;

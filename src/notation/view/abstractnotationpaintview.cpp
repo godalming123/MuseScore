@@ -34,7 +34,7 @@ using namespace muse::ui;
 using namespace muse::draw;
 using namespace muse::actions;
 
-static constexpr qreal SCROLL_LIMIT_OFF_OVERSCROLL_FACTOR = 0.75;
+static constexpr qreal OVERSCROLL_FACTOR_WHEN_ZOOMING = 0.3;
 
 static void compensateFloatPart(RectF& rect)
 {
@@ -136,7 +136,7 @@ void AbstractNotationPaintView::moveCanvasToCenter()
     }
 
     PointF canvasCenter = this->canvasCenter();
-    moveCanvas(canvasCenter.x(), canvasCenter.y(), false, false);
+    moveCanvas(canvasCenter.x(), canvasCenter.y(), false);
 }
 
 void AbstractNotationPaintView::scrollHorizontal(qreal position)
@@ -705,31 +705,37 @@ PointF AbstractNotationPaintView::canvasCenter() const
     return toLogical(PointF(x, y));
 }
 
-std::pair<qreal, qreal> AbstractNotationPaintView::constrainedCanvasMoveDelta(qreal x, qreal y) const
+void AbstractNotationPaintView::doMoveCanvas(PointF delta, bool userTriggeredMove, bool overrideZoomType) {
+    Transform oldMatrix = m_matrix;
+    m_matrix.translate(delta.x(), delta.y());
+    onMatrixChanged(oldMatrix, m_matrix, overrideZoomType);
+
+    if (userTriggeredMove) {
+        m_autoScrollEnabled = false;
+        m_enableAutoScrollTimer.start(2000);
+        hideElementPopup();
+    }
+}
+
+PointF AbstractNotationPaintView::constrainCanvasPosition(qreal x, qreal y) const
 {
     TRACEFUNC;
     RectF scrollableArea = notationContentRect().padded(MScore::horizontalPageGapOdd);
     RectF viewport = this->viewport();
 
     // horizontal
-    if (viewport.width() > scrollableArea.width()) {
-        x = scrollableArea.center().x() - viewport.width() / 2;
-    } else {
-        x = qBound(scrollableArea.left(), x, scrollableArea.right() - viewport.width());
-    }
+    x = viewport.width() > scrollableArea.width()
+        ? qBound(min(viewport.left(), x), scrollableArea.center().x() - viewport.width() / 2, max(viewport.left(), x))
+        : qBound(min(viewport.left(), scrollableArea.left()), x,
+                 max(viewport.left(), scrollableArea.right() - viewport.width()));
 
     // vertical
-    if (viewport.height() > scrollableArea.height()) {
-        y = scrollableArea.center().y() - viewport.height() / 2;
-    } else {
-        y = qBound(scrollableArea.top(), y, scrollableArea.bottom() - viewport.height());
-    }
+    y = viewport.height() > scrollableArea.height()
+        ? qBound(min(viewport.top(), y), scrollableArea.center().y() - viewport.height() / 2, max(viewport.top(), y))
+        : qBound(min(viewport.top(), scrollableArea.top()), y,
+                 max(viewport.top(), scrollableArea.bottom() - viewport.height()));
 
-    // convert from absolute coordinates to relative coordinates
-    x = viewport.left() - x;
-    y = viewport.top() - y;
-
-    return { x, y };
+    return PointF(x, y);
 }
 
 PointF AbstractNotationPaintView::viewportTopLeft() const
@@ -926,7 +932,7 @@ bool AbstractNotationPaintView::adjustCanvasPositionSmoothPan(const RectF& curso
 {
     RectF viewRect = viewport();
     qreal newX = cursorRect.x() - (viewRect.width() / 2);
-    qreal newY = viewport().intersects(cursorRect)
+    qreal newY = viewRect.intersects(cursorRect)
                  ? cursorRect.y() - (viewRect.height() / 2)
                  : viewRect.y();
     return moveCanvasToPosition(newX, newY);
@@ -941,8 +947,7 @@ bool AbstractNotationPaintView::ensureViewportInsideScrollableArea()
 bool AbstractNotationPaintView::moveCanvasToPosition(
     qreal x,
     qreal y,
-    bool userTriggeredMove,
-    bool overrideZoomType)
+    bool userTriggeredMove)
 {
     TRACEFUNC;
 
@@ -950,31 +955,19 @@ bool AbstractNotationPaintView::moveCanvasToPosition(
         return false;
     }
 
-    auto [dx, dy] = constrainedCanvasMoveDelta(x, y);
-    if (qFuzzyIsNull(dx) && qFuzzyIsNull(dy)) {
+    PointF delta = viewport().topLeft() - constrainCanvasPosition(x, y);
+    if (qFuzzyIsNull(delta.x()) && qFuzzyIsNull(delta.y())) {
         return false;
     }
 
-    Transform oldMatrix = m_matrix;
-    m_matrix.translate(dx, dy);
-    onMatrixChanged(oldMatrix, m_matrix, overrideZoomType);
-
-    if (userTriggeredMove) {
-        m_autoScrollEnabled = false;
-        m_enableAutoScrollTimer.start(2000);
-        hideElementPopup();
-    }
-
+    doMoveCanvas(delta, userTriggeredMove, false);
     return true;
 }
 
-bool AbstractNotationPaintView::moveCanvas(qreal dx, qreal dy, bool userTriggeredMove, bool overrideZoomType)
+bool AbstractNotationPaintView::moveCanvas(qreal dx, qreal dy, bool userTriggeredMove)
 {
-    return moveCanvasToPosition(
-        this->viewport().left() - dx,
-        this->viewport().top() - dy,
-        userTriggeredMove,
-        overrideZoomType);
+    PointF newPos = viewport().topLeft() - PointF(dx, dy);
+    return moveCanvasToPosition(newPos.x(), newPos.y(), userTriggeredMove);
 }
 
 void AbstractNotationPaintView::scheduleRedraw(const muse::RectF& rect)
@@ -1038,15 +1031,30 @@ void AbstractNotationPaintView::scale(qreal factor, const PointF& pos, bool over
     }
 
     PointF pointBeforeScaling = toLogical(pos);
-
     m_matrix.scale(factor, factor);
-
     PointF pointAfterScaling = toLogical(pos);
 
-    qreal dx = pointAfterScaling.x() - pointBeforeScaling.x();
-    qreal dy = pointAfterScaling.y() - pointBeforeScaling.y();
+    const RectF viewport = this->viewport();
+    qreal overscrollX = viewport.width() * OVERSCROLL_FACTOR_WHEN_ZOOMING;
+    qreal overscrollY = viewport.height() * OVERSCROLL_FACTOR_WHEN_ZOOMING;
+    RectF scrollableArea = notationContentRect().padded(MScore::horizontalPageGapOdd).padded(overscrollX, overscrollY);
+    PointF newPos = viewport.topLeft() - pointAfterScaling + pointBeforeScaling;
 
-    moveCanvas(dx, dy, true, overrideZoomType);
+    // horizontal
+    if (viewport.width() > scrollableArea.width()) {
+        newPos.setX(scrollableArea.center().x() - viewport.width() / 2);
+    } else {
+        newPos.setX(qBound(scrollableArea.left(), newPos.x(), scrollableArea.right() - viewport.width()));
+    }
+
+    // vertical
+    if (viewport.height() > scrollableArea.height()) {
+        newPos.setY(scrollableArea.center().y() - viewport.height() / 2);
+    } else {
+        newPos.setY(qBound(scrollableArea.top(), newPos.y(), scrollableArea.bottom() - viewport.height()));
+    }
+
+    doMoveCanvas(viewport.topLeft() - newPos, true, overrideZoomType);
 }
 
 void AbstractNotationPaintView::pinchToZoom(qreal scaleFactor, const QPointF& pos)

@@ -52,12 +52,11 @@ public:
     virtual qreal height() const = 0;
 
     virtual muse::PointF viewportTopLeft() const = 0;
+    virtual muse::RectF viewport() const = 0;
 
     //! muse::Returns true if the canvas has been moved
-    virtual bool moveCanvas(
-        qreal dx, qreal dy, bool userTriggeredMove = true, bool overrideZoomType = false) = 0;
-    virtual bool moveCanvasToPosition(
-        qreal x, qreal y, bool userTriggeredMove = true, bool overrideZoomType = false) = 0;
+    virtual bool moveCanvas(qreal dx, qreal dy, bool userTriggeredMove = true) = 0;
+    virtual bool moveCanvasToPosition(qreal x, qreal y, bool userTriggeredMove = true) = 0;
 
     virtual muse::RectF notationContentRect() const = 0;
     virtual qreal currentScaling() const = 0;

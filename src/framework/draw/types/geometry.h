@@ -359,6 +359,9 @@ public:
     inline void pad(double p) { adjust(-p, -p, p, p); }
     inline RectX<T> padded(double p) const { return adjusted(-p, -p, p, p); }
 
+    inline void pad(double px, double py) { adjust(-px, -py, px, py); }
+    inline RectX<T> padded(double px, double py) const { return adjusted(-px, -py, px, py); }
+
     inline RectX<T>& scale(const SizeX<T>& mag)
     {
         m_x *= mag.width();
